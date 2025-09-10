@@ -53,6 +53,8 @@ export default function CandidateDashboard() {
       }
     } catch (error) {
       console.error('Failed to load interviews:', error);
+      // Set empty array if no interviews found
+      setInterviews([]);
     } finally {
       setLoading(false);
     }
@@ -64,7 +66,10 @@ export default function CandidateDashboard() {
       const result = await InterviewService.respondToInterview(interviewId, response);
       if (result.success) {
         await loadInterviews();
-        alert(`Interview ${response}ed successfully!`);
+        const message = response === 'accept' 
+          ? 'Interview accepted successfully! You will receive a calendar invite shortly.'
+          : 'Interview declined. Thank you for letting us know.';
+        alert(message);
       }
     } catch (error: any) {
       alert(error.response?.data?.message || `Failed to ${response} interview`);

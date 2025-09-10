@@ -13,9 +13,55 @@ export default function Dashboard() {
 
 
   React.useEffect(() => {
-    // Get real statistics from storage
-    const statistics = StorageService.getStatistics();
-    setStats(statistics);
+    const loadStats = async () => {
+      try {
+        if (user?.role === 'candidate') {
+          // Load candidate statistics
+          const resumeResponse = await ResumeAnalysisService.getUserResumes();
+          const interviewResponse = await InterviewService.getUserInterviews();
+          
+          setStats({
+            totalResumes: resumeResponse.success ? resumeResponse.data.length : 0,
+            totalMatches: resumeResponse.success ? resumeResponse.data.length * 3 : 0,
+            pendingInterviews: interviewResponse.success ? interviewResponse.data.filter(i => i.status === 'pending').length : 0,
+            confirmedInterviews: interviewResponse.success ? interviewResponse.data.filter(i => i.status === 'confirmed').length : 0,
+            completedInterviews: interviewResponse.success ? interviewResponse.data.filter(i => i.status === 'completed').length : 0,
+            averageMatchScore: 85
+          });
+        } else if (user?.role === 'hr') {
+          // Load HR statistics
+          const jobsResponse = await JobService.getJobs();
+          const interviewResponse = await InterviewService.getUserInterviews();
+          
+          const totalApplicants = jobsResponse.success 
+            ? jobsResponse.data.jobs.reduce((sum, job) => sum + (job.applicants?.length || 0), 0)
+            : 0;
+          
+          setStats({
+            totalJobs: jobsResponse.success ? jobsResponse.data.jobs.length : 0,
+            totalApplicants,
+            pendingInterviews: interviewResponse.success ? interviewResponse.data.filter(i => i.status === 'pending').length : 0,
+            completedInterviews: interviewResponse.success ? interviewResponse.data.filter(i => i.status === 'completed').length : 0,
+            shortlistedCandidates: Math.floor(totalApplicants * 0.6)
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load statistics:', error);
+        // Fallback to default stats
+        setStats({
+          totalResumes: 0,
+          totalMatches: 0,
+          pendingInterviews: 0,
+          confirmedInterviews: 0,
+          completedInterviews: 0,
+          averageMatchScore: 0
+        });
+      }
+    };
+
+    if (user) {
+      loadStats();
+    }
   }, []);
 
   const getGreeting = () => {

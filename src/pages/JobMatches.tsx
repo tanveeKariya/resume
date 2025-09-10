@@ -70,7 +70,7 @@ export default function JobMatches() {
       const resumeAnalyses = await ResumeAnalysisService.getUserResumes();
       
       if (!resumeAnalyses.success || resumeAnalyses.data.length === 0) {
-        setError('Please upload and analyze a resume first');
+        alert('Please upload and analyze a resume first');
         return;
       }
 
@@ -78,7 +78,16 @@ export default function JobMatches() {
       const response = await JobMatchingService.applyToJob(job._id, latestResume._id);
       
       if (response.success) {
-        alert(`Successfully applied to ${job.title} at ${job.company}!`);
+        alert(`Successfully applied to ${job.title} at ${job.company}!\n\nMatch Score: ${response.data.matchScore}%\n\nYou will be notified once the recruiter reviews your application.`);
+        
+        // Update the job in the list to show it's been applied to
+        setJobMatches(prevJobs => 
+          prevJobs.map(j => 
+            j._id === job._id 
+              ? { ...j, hasApplied: true }
+              : j
+          )
+        );
       }
     } catch (error: any) {
       alert(error.response?.data?.message || 'Failed to apply to job');
@@ -252,10 +261,14 @@ export default function JobMatches() {
                       handleApplyToJob(job);
                     }}
                     disabled={loading}
-                    className="flex-1 bg-secondary-600 text-white py-2 px-4 rounded-lg hover:bg-secondary-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 ${
+                      job.hasApplied 
+                        ? 'bg-green-600 text-white cursor-not-allowed' 
+                        : 'bg-secondary-600 text-white hover:bg-secondary-700'
+                    }`}
                   >
                     <CheckCircle className="h-4 w-4" />
-                    <span>Apply Now</span>
+                    <span>{job.hasApplied ? 'Applied' : 'Apply Now'}</span>
                   </button>
                   <button 
                     onClick={(e) => {

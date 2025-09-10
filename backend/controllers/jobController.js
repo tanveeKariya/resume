@@ -182,7 +182,8 @@ class JobController {
         userId,
         resumeId,
         matchScore: matchResult.finalScore,
-        candidateBrief
+        candidateBrief,
+        status: 'applied'
       });
 
       await job.save();
@@ -194,7 +195,8 @@ class JobController {
         message: 'Application submitted successfully',
         data: {
           matchScore: matchResult.finalScore,
-          matchDetails: matchResult
+          matchDetails: matchResult,
+          applicationStatus: 'applied'
         }
       });
 

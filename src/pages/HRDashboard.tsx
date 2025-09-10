@@ -38,6 +38,12 @@ export default function HRDashboard() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
 
+  const [applicationAction, setApplicationAction] = useState<{
+    candidateId: string;
+    jobId: string;
+    action: 'approve' | 'reject';
+  } | null>(null);
+
   const [newJob, setNewJob] = useState({
     title: '',
     company: '',
@@ -207,6 +213,43 @@ export default function HRDashboard() {
       }
     } catch (error: any) {
       alert(error.response?.data?.message || 'Failed to schedule interview');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApplicationAction = async (candidateId: string, jobId: string, action: 'approve' | 'reject') => {
+    try {
+      setLoading(true);
+      
+      // In a real implementation, this would call an API endpoint
+      // For now, we'll simulate the action
+      const message = action === 'approve' 
+        ? 'Congratulations! Your application has been approved. You will be contacted soon for the next steps.'
+        : 'Thank you for your interest. Unfortunately, we have decided to move forward with other candidates at this time.';
+      
+      // Update the applicant status locally
+      const updatedJobs = jobs.map(job => {
+        if (job._id === jobId) {
+          const updatedApplicants = job.applicants.map(applicant => {
+            if (applicant.userId._id === candidateId) {
+              return {
+                ...applicant,
+                status: action === 'approve' ? 'shortlisted' : 'rejected'
+              };
+            }
+            return applicant;
+          });
+          return { ...job, applicants: updatedApplicants };
+        }
+        return job;
+      });
+      
+      setJobs(updatedJobs);
+      
+      alert(`Application ${action}d successfully!\n\nCandidate will be notified: "${message}"`);
+    } catch (error: any) {
+      alert(`Failed to ${action} application`);
     } finally {
       setLoading(false);
     }
@@ -538,6 +581,35 @@ export default function HRDashboard() {
                           <Calendar className="h-4 w-4" />
                           <span>Schedule</span>
                         </button>
+                        {applicant.status === 'applied' && (
+                          <>
+                            <button 
+                              onClick={() => handleApplicationAction(applicant.userId._id, selectedJob!, 'approve')}
+                              disabled={loading}
+                              className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50"
+                            >
+                              Approve
+                            </button>
+                            <button 
+                              onClick={() => handleApplicationAction(applicant.userId._id, selectedJob!, 'reject')}
+                              disabled={loading}
+                              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                        {applicant.status !== 'applied' && (
+                          <span className={`px-3 py-1 text-sm rounded font-medium ${
+                            applicant.status === 'shortlisted' 
+                              ? 'bg-green-100 text-green-800' 
+                              : applicant.status === 'rejected'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

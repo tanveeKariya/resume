@@ -28,26 +28,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = async (demoRole: 'hr' | 'candidate') => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      const demoCredentials = {
-        hr: { email: 'hr@demo.com', password: 'demo123' },
-        candidate: { email: 'candidate@demo.com', password: 'demo123' }
-      };
-      
-      const { email: demoEmail, password: demoPassword } = demoCredentials[demoRole];
-      await login(demoEmail, demoPassword, demoRole);
-      navigate('/dashboard');
-    } catch (error: any) {
-      setError(error.message || 'Demo login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
@@ -59,29 +39,6 @@ export default function LoginPage() {
           </Link>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
           <p className="text-gray-600">Sign in to your account to continue</p>
-        </div>
-
-        {/* Demo Login Cards */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <button
-            onClick={() => handleDemoLogin('candidate')}
-            disabled={loading}
-            className="p-4 bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all disabled:opacity-50"
-          >
-            <User className="h-6 w-6 text-primary-600 mx-auto mb-2" />
-            <p className="font-semibold text-gray-900">Demo Candidate</p>
-            <p className="text-xs text-gray-500">Try as job seeker</p>
-          </button>
-          
-          <button
-            onClick={() => handleDemoLogin('hr')}
-            disabled={loading}
-            className="p-4 bg-white rounded-lg border border-gray-200 hover:border-secondary-300 hover:bg-secondary-50 transition-all disabled:opacity-50"
-          >
-            <Brain className="h-6 w-6 text-secondary-600 mx-auto mb-2" />
-            <p className="font-semibold text-gray-900">Demo HR</p>
-            <p className="text-xs text-gray-500">Try as recruiter</p>
-          </button>
         </div>
 
         {/* Login Form */}
